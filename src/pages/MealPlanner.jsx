@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Plus, Zap, Search as SearchIcon, Sun, CloudSun, Moon, Star, CalendarPlus } from 'lucide-react';
+import { X, Plus, Zap, Trash2, Search as SearchIcon, Sun, CloudSun, Moon, Star, CalendarPlus } from 'lucide-react';
 import Toast from '../components/Toast';
 import IconTile from '../components/IconTile';
 import { PageLoader } from '../components/Spinner';
@@ -78,6 +78,17 @@ export default function MealPlanner() {
       await savePlan(newPlan);
       setToast('Week plan generated');
     } catch { setToast('Failed to save plan'); }
+  }
+
+  async function clearDay() {
+    const newPlan = {};
+    DAYS.forEach(day => {
+      newPlan[day] = day === activeDay ? {} : { ...plan[day] };
+    });
+    try {
+      await savePlan(newPlan);
+      setToast(`${activeDay} cleared`);
+    } catch { setToast('Failed to clear day'); }
   }
 
   const dayPlan = plan[activeDay] || { breakfast: null, lunch: null, dinner: null };
@@ -174,6 +185,40 @@ export default function MealPlanner() {
 
       {/* ── MEAL SLOTS ── */}
       <div style={{ padding: '0 16px' }} className="animate-fadeUp delay-1">
+        {MEALS.some(m => dayPlan[m]) && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+            <button
+              onClick={clearDay}
+              disabled={saving}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '6px 12px', borderRadius: 'var(--radius-xs)',
+                background: 'transparent',
+                border: '1.5px solid var(--color-border)',
+                color: 'var(--color-text-3)',
+                fontSize: 'var(--text-xs)', fontWeight: 600,
+                cursor: saving ? 'default' : 'pointer',
+                fontFamily: 'var(--font-body)',
+                transition: 'border-color 0.15s, color 0.15s, background 0.15s',
+                opacity: saving ? 0.5 : 1,
+              }}
+              onMouseEnter={e => {
+                if (saving) return;
+                e.currentTarget.style.borderColor = 'var(--color-error, #e53e3e)';
+                e.currentTarget.style.color = 'var(--color-error, #e53e3e)';
+                e.currentTarget.style.background = 'rgba(229,62,62,0.06)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = 'var(--color-border)';
+                e.currentTarget.style.color = 'var(--color-text-3)';
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <Trash2 size={13} />
+              Clear {activeDay}
+            </button>
+          </div>
+        )}
         {MEALS.map(meal => {
           const recipe = dayPlan[meal];
           const MealIcon = MEAL_ICON_COMPONENTS[meal];
