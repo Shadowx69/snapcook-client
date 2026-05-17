@@ -97,7 +97,7 @@ export default function Snap() {
       navigate('/recipes?ai=true');
     } catch (err) {
       console.error(err);
-      setToast('Failed to find recipes. Check your connection and try again.');
+      setToast(err.message || 'Failed to find recipes. Check your connection and try again.');
       setLoading(false);
     }
   }

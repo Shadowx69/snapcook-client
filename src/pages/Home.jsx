@@ -257,7 +257,7 @@ export default function Home() {
           </div>
           <div className="scroll-row" style={{ paddingRight: 16 }}>
             {favCuisineRecipes.map(r => (
-              <RecipeCard key={r._id} recipe={r} variant="portrait" onSave={() => setToast('Recipe saved')} />
+              <RecipeCard key={r._id} recipe={r} variant="portrait" onSave={(id, isSaved) => setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites')} />
             ))}
           </div>
         </div>
@@ -271,7 +271,7 @@ export default function Home() {
           </div>
           <div className="scroll-row" style={{ paddingRight: 16 }}>
             {trending.map(r => (
-              <RecipeCard key={r._id} recipe={r} variant="portrait" onSave={() => setToast('Recipe saved')} />
+              <RecipeCard key={r._id} recipe={r} variant="portrait" onSave={(id, isSaved) => setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites')} />
             ))}
           </div>
         </div>
@@ -285,7 +285,7 @@ export default function Home() {
           </div>
           <div className="scroll-row" style={{ paddingRight: 16 }}>
             {quick.map(r => (
-              <RecipeCard key={r._id} recipe={r} variant="portrait" onSave={() => setToast('Recipe saved')} />
+              <RecipeCard key={r._id} recipe={r} variant="portrait" onSave={(id, isSaved) => setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites')} />
             ))}
           </div>
         </div>

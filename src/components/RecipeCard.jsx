@@ -2,41 +2,64 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, Heart, Flame } from 'lucide-react';
 import StarRating from './StarRating';
+import { usersApi } from '../api/users';
 
-function ImgBox({ src, gradient, height, children }) {
-  const [err, setErr] = useState(false);
+// Shared heart button — centered, 44px touch target regardless of visual size.
+// `size` sets the circle diameter; `iconSize` sets the SVG pixels.
+function HeartBtn({ saved, onToggle, size = 36, iconSize = 15, bg = 'rgba(255,255,255,0.9)', style = {} }) {
   return (
-    <div style={{
-      height, position: 'relative', overflow: 'hidden', flexShrink: 0,
-      background: gradient || 'var(--color-surface-2)',
-    }}>
-      {src && !err ? (
-        <img
-          src={src} alt="" onError={() => setErr(true)}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-        />
-      ) : null}
-      {/* dark scrim so text on top stays readable */}
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)' }} />
-      {children}
-    </div>
+    <button
+      onClick={onToggle}
+      className="heart-btn"
+      style={{
+        width: size, height: size,
+        minWidth: size, minHeight: size,
+        borderRadius: '50%',
+        background: bg,
+        boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
+        ...style,
+      }}
+    >
+      <Heart
+        size={iconSize}
+        style={{
+          fill: saved ? 'var(--color-primary)' : 'transparent',
+          color: saved ? 'var(--color-primary)' : 'rgba(0,0,0,0.45)',
+        }}
+      />
+    </button>
   );
 }
 
 export default function RecipeCard({ recipe, variant = 'portrait', onSave, saved: savedProp = false }) {
   const navigate = useNavigate();
   const [saved, setSaved] = useState(savedProp);
+  const [busy, setBusy] = useState(false);
 
-  function handleSave(e) {
+  const recipeId = recipe._id || recipe.id;
+
+  async function handleSave(e) {
     e.stopPropagation();
-    setSaved(s => !s);
-    onSave?.(recipe.id, !saved);
+    if (busy) return;
+    const willSave = !saved;
+    setSaved(willSave);          // optimistic
+    setBusy(true);
+    try {
+      if (willSave) await usersApi.saveRecipe(recipeId);
+      else          await usersApi.unsaveRecipe(recipeId);
+      onSave?.(recipeId, willSave);
+    } catch {
+      setSaved(!willSave);       // revert on error
+    } finally {
+      setBusy(false);
+    }
   }
 
+  // ── Portrait (horizontal scroll cards on Home) ─────────────────────────────
   if (variant === 'portrait') {
     return (
       <div
-        onClick={() => navigate(`/recipe/${recipe._id || recipe.id}`)}
+        onClick={() => navigate(`/recipe/${recipeId}`)}
         style={{
           width: 160, flexShrink: 0,
           background: 'var(--color-surface)',
@@ -50,91 +73,115 @@ export default function RecipeCard({ recipe, variant = 'portrait', onSave, saved
         onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
         onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
       >
-        <ImgBox src={recipe.image} gradient={recipe.gradient} height={110}>
-          <button
-            onClick={handleSave}
-            style={{
-              position: 'absolute', top: 8, right: 8,
-              width: 28, height: 28, borderRadius: '50%',
-              background: 'rgba(255,255,255,0.85)',
-              border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              animation: saved ? 'heartPop 0.35s ease' : '',
-            }}
-          >
-            <Heart size={14} style={{ fill: saved ? 'var(--color-primary)' : 'transparent', color: saved ? 'var(--color-primary)' : 'var(--color-text-3)' }} />
-          </button>
+        {/* Image */}
+        <div style={{ height: 110, position: 'relative', background: recipe.gradient || 'var(--color-surface-2)', overflow: 'hidden', flexShrink: 0 }}>
+          {recipe.image && (
+            <img src={recipe.image} alt={recipe.title}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              onError={e => { e.target.style.display = 'none'; }} />
+          )}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 55%)' }} />
+          <HeartBtn saved={saved} onToggle={handleSave} size={28} iconSize={13}
+            style={{ position: 'absolute', top: 7, right: 7 }} />
           <span style={{
-            position: 'absolute', bottom: 8, left: 8,
+            position: 'absolute', bottom: 7, left: 7,
             background: 'rgba(0,0,0,0.5)', color: '#fff',
             borderRadius: 'var(--radius-xs)', padding: '2px 7px',
-            fontSize: 'var(--text-xs)', fontWeight: 600,
+            fontSize: 10, fontWeight: 600,
             display: 'flex', alignItems: 'center', gap: 3,
           }}>
             <Clock size={10} /> {recipe.time}m
           </span>
-        </ImgBox>
-        <div style={{ padding: '10px 10px 12px' }}>
-          <p style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 6, fontFamily: 'var(--font-display)' }}>
+        </div>
+        {/* Body */}
+        <div style={{ padding: '9px 10px 11px' }}>
+          <p className="line-clamp-2" style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 5, fontFamily: 'var(--font-display)' }}>
             {recipe.title}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <StarRating rating={recipe.rating} size={11} />
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-3)', fontWeight: 500 }}>{recipe.rating}</span>
+            <span style={{ fontSize: 10, color: 'var(--color-text-3)', fontWeight: 500 }}>{recipe.rating}</span>
           </div>
         </div>
       </div>
     );
   }
 
+  // ── List ──────────────────────────────────────────────────────────────────
   if (variant === 'list') {
     return (
       <div
-        onClick={() => navigate(`/recipe/${recipe._id || recipe.id}`)}
+        onClick={() => navigate(`/recipe/${recipeId}`)}
         style={{
-          display: 'flex', gap: 0,
+          display: 'flex',
+          minHeight: 88,
           background: 'var(--color-surface)',
           borderRadius: 'var(--radius-md)',
           border: '1px solid var(--color-border)',
           boxShadow: 'var(--shadow-sm)',
           overflow: 'hidden',
           cursor: 'pointer',
-          transition: 'transform 0.2s',
+          transition: 'transform 0.18s, box-shadow 0.18s',
         }}
-        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
-        onMouseLeave={e => { e.currentTarget.style.transform = ''; }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
+        onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
       >
+        {/* Thumbnail */}
         <div style={{ width: 100, flexShrink: 0, position: 'relative', overflow: 'hidden', background: recipe.gradient || 'var(--color-surface-2)' }}>
-          {recipe.image ? (
-            <img src={recipe.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          {recipe.image && (
+            <img src={recipe.image} alt={recipe.title}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               onError={e => { e.target.style.display = 'none'; }} />
-          ) : null}
+          )}
+          {recipe.difficulty && (
+            <span style={{
+              position: 'absolute', bottom: 6, left: 6,
+              background: getDifficultyColor(recipe.difficulty), color: '#fff',
+              borderRadius: 'var(--radius-xs)', padding: '2px 6px',
+              fontSize: 10, fontWeight: 700, lineHeight: 1.4,
+            }}>
+              {recipe.difficulty}
+            </span>
+          )}
         </div>
-        <div style={{ padding: '12px 12px 12px 12px', flex: 1, minWidth: 0 }}>
-          <p style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-base)', fontWeight: 600, marginBottom: 4, color: 'var(--color-text)' }}>
-            {recipe.title}
-          </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', gap: 3 }}>
-              <Clock size={11} /> {recipe.time}m
-            </span>
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', gap: 3 }}>
-              <Flame size={11} /> {recipe.calories} kcal
-            </span>
+
+        {/* Content */}
+        <div style={{ padding: '10px 10px 10px 12px', flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <p className="line-clamp-2" style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'var(--text-sm)', fontWeight: 700,
+              color: 'var(--color-text)', lineHeight: 1.35, marginBottom: 5,
+            }}>
+              {recipe.title}
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Clock size={11} /> {recipe.time}m
+              </span>
+              {recipe.calories > 0 && (
+                <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                  <Flame size={11} /> {recipe.calories} kcal
+                </span>
+              )}
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <StarRating rating={recipe.rating} size={12} />
-              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-3)' }}>{recipe.rating}</span>
+              <span style={{ fontSize: 10, color: 'var(--color-text-3)', fontWeight: 500 }}>{recipe.rating}</span>
             </div>
-            <button onClick={handleSave} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-              <Heart size={16} style={{ fill: saved ? 'var(--color-primary)' : 'transparent', color: saved ? 'var(--color-primary)' : 'var(--color-text-3)' }} />
-            </button>
+            {/* transparent bg version for list rows */}
+            <HeartBtn saved={saved} onToggle={handleSave} size={40} iconSize={17}
+              bg="transparent"
+              style={{ boxShadow: 'none', marginRight: -4 }} />
           </div>
+
           {recipe.matchScore !== undefined && (
-            <div style={{ marginTop: 6, fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-primary)' }}>
-              AI Match: {Math.round(recipe.matchScore * 100)}%
-              {recipe.missing?.length > 0 && <span style={{ color: 'var(--color-warning)', marginLeft: 6 }}>({recipe.missing.length} missing)</span>}
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-primary)', marginTop: 3 }}>
+              {Math.round(recipe.matchScore * 100)}% match
+              {recipe.missing?.length > 0 && <span style={{ color: 'var(--color-warning)', marginLeft: 5 }}>{recipe.missing.length} missing</span>}
             </div>
           )}
         </div>
@@ -142,53 +189,67 @@ export default function RecipeCard({ recipe, variant = 'portrait', onSave, saved
     );
   }
 
-  // Grid variant (default)
+  // ── Grid (default) — fills column width assigned by .recipe-grid ──────────
   return (
     <div
-      onClick={() => navigate(`/recipe/${recipe._id || recipe.id}`)}
+      onClick={() => navigate(`/recipe/${recipeId}`)}
       style={{
+        display: 'flex', flexDirection: 'column',
         background: 'var(--color-surface)',
         borderRadius: 'var(--radius-md)',
         border: '1px solid var(--color-border)',
         boxShadow: 'var(--shadow-sm)',
         overflow: 'hidden',
         cursor: 'pointer',
-        transition: 'transform 0.2s, box-shadow 0.2s',
+        transition: 'transform 0.18s, box-shadow 0.18s',
       }}
       onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
       onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
     >
-      <ImgBox src={recipe.image} gradient={recipe.gradient} height={120}>
-        <button onClick={handleSave} style={{
-          position: 'absolute', top: 8, right: 8,
-          width: 30, height: 30, borderRadius: '50%',
-          background: 'rgba(255,255,255,0.9)',
-          border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Heart size={15} style={{ fill: saved ? 'var(--color-primary)' : 'transparent', color: saved ? 'var(--color-primary)' : 'var(--color-text-3)' }} />
-        </button>
-        <div style={{ position: 'absolute', bottom: 8, left: 8, display: 'flex', gap: 4 }}>
-          <span className="badge badge-surface" style={{ background: 'rgba(0,0,0,0.5)', color: '#fff', border: 'none' }}>
-            <Clock size={10} /> {recipe.time}m
+      {/* Image — 60% padding-top trick for consistent aspect ratio */}
+      <div style={{ position: 'relative', paddingTop: '62%', background: recipe.gradient || 'var(--color-surface-2)', flexShrink: 0 }}>
+        {recipe.image && (
+          <img src={recipe.image} alt={recipe.title}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+            onError={e => { e.target.style.display = 'none'; }} />
+        )}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.08) 45%, transparent 100%)' }} />
+
+        <HeartBtn saved={saved} onToggle={handleSave} size={34} iconSize={15}
+          style={{ position: 'absolute', top: 7, right: 7 }} />
+
+        {/* Time + Difficulty badges */}
+        <div style={{ position: 'absolute', bottom: 7, left: 7, display: 'flex', gap: 4, alignItems: 'center' }}>
+          <span style={{ background: 'rgba(0,0,0,0.52)', color: '#fff', borderRadius: 'var(--radius-xs)', padding: '2px 6px', fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
+            <Clock size={9} /> {recipe.time}m
           </span>
-          <span className="badge" style={{ background: getDifficultyColor(recipe.difficulty), color: '#fff' }}>
-            {recipe.difficulty}
-          </span>
+          {recipe.difficulty && (
+            <span style={{ background: getDifficultyColor(recipe.difficulty), color: '#fff', borderRadius: 'var(--radius-xs)', padding: '2px 6px', fontSize: 10, fontWeight: 700 }}>
+              {recipe.difficulty}
+            </span>
+          )}
         </div>
-      </ImgBox>
-      <div style={{ padding: '10px 12px 12px' }}>
-        <p style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 6, lineHeight: 1.3 }}>
+      </div>
+
+      {/* Card body */}
+      <div style={{ padding: '9px 10px 11px', flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
+        <p className="line-clamp-2" style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 'var(--text-sm)', fontWeight: 700,
+          color: 'var(--color-text)', lineHeight: 1.3,
+        }}>
           {recipe.title}
         </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <StarRating rating={recipe.rating} size={12} />
-          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-3)', fontWeight: 500 }}>{recipe.rating} ({recipe.reviewCount})</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 'auto' }}>
+          <StarRating rating={recipe.rating} size={11} />
+          <span style={{ fontSize: 10, color: 'var(--color-text-3)', fontWeight: 500 }}>
+            {recipe.rating}{recipe.reviewCount ? ` (${recipe.reviewCount})` : ''}
+          </span>
         </div>
         {recipe.matchScore !== undefined && (
-          <div style={{ marginTop: 8, fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-primary)' }}>
-            AI Match: {Math.round(recipe.matchScore * 100)}%
-            {recipe.missing?.length > 0 && <span style={{ color: 'var(--color-warning)', marginLeft: 6 }}>({recipe.missing.length} missing)</span>}
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-primary)', marginTop: 2 }}>
+            {Math.round(recipe.matchScore * 100)}% match
+            {recipe.missing?.length > 0 && <span style={{ color: 'var(--color-warning)', marginLeft: 5 }}>{recipe.missing.length} missing</span>}
           </div>
         )}
       </div>

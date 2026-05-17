@@ -150,12 +150,12 @@ export default function CuisinePage() {
             </p>
           </div>
         ) : viewMode === 'grid' ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
-            {recipes.map(r => <RecipeCard key={r._id} recipe={r} onSave={() => setToast('Saved')} />)}
+          <div className="recipe-grid">
+            {recipes.map(r => <RecipeCard key={r._id} recipe={r} variant="grid" onSave={(id, isSaved) => setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites')} />)}
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {recipes.map(r => <RecipeCard key={r._id} recipe={r} variant="list" onSave={() => setToast('Saved')} />)}
+          <div className="recipe-list">
+            {recipes.map(r => <RecipeCard key={r._id} recipe={r} variant="list" onSave={(id, isSaved) => setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites')} />)}
           </div>
         )}
       </div>

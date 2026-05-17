@@ -10,7 +10,7 @@ import IconTile from '../components/IconTile';
 import { PageLoader } from '../components/Spinner';
 import ErrorBanner from '../components/ErrorBanner';
 import { useCuisines } from '../hooks/useCuisine';
-import { useCollections } from '../hooks/useCollections';
+import { useCollections, useAllCollectionRecipes } from '../hooks/useCollections';
 import { useRecipes } from '../hooks/useRecipes';
 import { getCollectionIcon } from '../icons/cuisineIcon';
 
@@ -29,19 +29,17 @@ export default function Explore() {
   const { data: collectionsData } = useCollections();
   const { data: trending, loading: trendingLoading } = useRecipes({ sort: 'reviewCount', limit: 4 });
 
+  const collectionIds = (collectionsData || []).map(c => c.id);
+  const { data: allCollectionRecipes, loading: collectionRecipesLoading } = useAllCollectionRecipes(collectionIds);
+
   const isLoading = cuisinesLoading && trendingLoading;
   if (isLoading) return <PageLoader />;
 
   return (
     <div style={{ paddingBottom: 'calc(var(--bottom-nav-h) + 20px)' }}>
 
-      {/* ── STICKY SEARCH + DIET FILTER ── */}
-      <div style={{
-        position: 'sticky', top: 60, zIndex: 10,
-        background: 'var(--color-bg)',
-        borderBottom: 'none',
-        padding: '12px 16px 0',
-      }}>
+      {/* ── STICKY SEARCH ── */}
+      <div style={{ position: 'sticky', top: 60, zIndex: 10, background: 'var(--color-bg)', padding: '12px 16px 0' }}>
         <div
           onClick={() => navigate('/search')}
           style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-xs)', padding: '11px 16px', cursor: 'pointer', marginBottom: 12, boxShadow: 'var(--shadow-sm)', transition: 'box-shadow 0.15s, border-color 0.15s' }}
@@ -88,26 +86,66 @@ export default function Explore() {
           )}
         </div>
 
-        {/* ── POPULAR COLLECTIONS ── */}
+        {/* ── COLLECTIONS — each with a horizontal recipe scroll ── */}
         {collectionsData?.length > 0 && (
           <div className="animate-fadeUp delay-1" style={{ marginBottom: 28 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <BookOpen size={18} color="var(--color-primary)" />
-                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-lg)', fontWeight: 600 }}>Collections</h2>
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
+              <BookOpen size={18} color="var(--color-primary)" />
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-lg)', fontWeight: 600 }}>Collections</h2>
             </div>
-            <div className="scroll-row" style={{ gap: 10 }}>
-              {collectionsData.map(col => (
-                <div key={col.id} onClick={() => navigate(`/recipes?collection=${col.id}`)}
-                  style={{ flexShrink: 0, width: 130, background: col.color, borderRadius: 'var(--radius-md)', padding: '16px 14px', cursor: 'pointer', border: '1px solid var(--color-border)', transition: 'transform 0.2s, box-shadow 0.2s', boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
-                >
-                  {(() => { const ColIcon = getCollectionIcon(col.id); return <ColIcon size={28} strokeWidth={2} color="#fff" style={{ marginBottom: 10 }} />; })()}
-                  <p style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: '#fff', lineHeight: 1.3, fontFamily: 'var(--font-body)' }}>{col.label}</p>
-                </div>
-              ))}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              {collectionsData.map(col => {
+                const ColIcon = getCollectionIcon(col.id);
+                const colRecipes = allCollectionRecipes?.[col.id] || [];
+                return (
+                  <div key={col.id}>
+                    {/* Section header */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 30, height: 30, borderRadius: 8, background: col.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <ColIcon size={15} color="#fff" strokeWidth={2} />
+                        </div>
+                        <span style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--color-text)', fontFamily: 'var(--font-display)' }}>{col.label}</span>
+                      </div>
+                      <button
+                        onClick={() => navigate(`/recipes?collection=${col.id}&title=${encodeURIComponent(col.label)}`)}
+                        style={{ fontSize: 'var(--text-xs)', color: 'var(--color-primary)', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', padding: '4px 0', whiteSpace: 'nowrap' }}
+                      >
+                        See all →
+                      </button>
+                    </div>
+
+                    {/* Recipe cards */}
+                    {collectionRecipesLoading ? (
+                      <div className="scroll-row" style={{ gap: 10 }}>
+                        {[1, 2, 3].map(i => (
+                          <div key={i} style={{ flexShrink: 0, width: 160 }}>
+                            <div className="skeleton" style={{ height: 110, borderRadius: 'var(--radius-md)', marginBottom: 7 }} />
+                            <div className="skeleton" style={{ height: 13, width: '80%', marginBottom: 5 }} />
+                            <div className="skeleton" style={{ height: 10, width: '50%' }} />
+                          </div>
+                        ))}
+                      </div>
+                    ) : colRecipes.length > 0 ? (
+                      <div className="scroll-row" style={{ gap: 10 }}>
+                        {colRecipes.map(r => (
+                          <RecipeCard
+                            key={r._id || r.id}
+                            recipe={r}
+                            variant="portrait"
+                            onSave={(id, isSaved) => setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites')}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-3)', padding: '6px 0' }}>
+                        No recipes yet — run the seed script to populate this collection.
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -141,7 +179,7 @@ export default function Explore() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {!trendingLoading && (trending || []).map((r, i) => (
               <div key={r._id} className="animate-fadeUp" style={{ animationDelay: `${i * 0.05}s` }}>
-                <RecipeCard recipe={r} variant="list" onSave={() => setToast('Recipe saved')} />
+                <RecipeCard recipe={r} variant="list" onSave={(id, isSaved) => setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites')} />
               </div>
             ))}
           </div>

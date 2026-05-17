@@ -31,6 +31,7 @@ export default function Recipes() {
   const cuisineParam = searchParams.get('cuisine');
   const categoryParam = searchParams.get('category');
   const collectionParam = searchParams.get('collection');
+  const collectionTitle = searchParams.get('title');
   const maxTimeParam = searchParams.get('maxTime');
   const maxCalParam = searchParams.get('maxCal');
   const tagParam = searchParams.get('tag');
@@ -97,7 +98,7 @@ export default function Recipes() {
   const pageTitle = isAi ? 'Found For You'
     : cuisineParam ? `${cuisineParam.charAt(0).toUpperCase() + cuisineParam.slice(1)} Recipes`
       : categoryParam ? `${categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1)} Recipes`
-        : collectionParam ? `${collectionParam.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}`
+        : collectionParam ? (collectionTitle || collectionParam.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '))
           : maxTimeParam ? `Under ${maxTimeParam} Min`
             : maxCalParam ? `Under ${maxCalParam} Calories`
               : maxIngredientsParam ? `${maxIngredientsParam} Ingredients or Less`
@@ -154,18 +155,18 @@ export default function Recipes() {
           </div>
 
           {viewMode === 'grid' ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
+            <div className="recipe-grid">
               {(displayRecipes || []).map(r => (
                 <AiClickWrapper key={r._id || r.id} recipeId={r._id || r.id} enabled={isAi}>
-                  <RecipeCard recipe={r} onSave={() => setToast('Saved')} />
+                  <RecipeCard recipe={r} variant="grid" onSave={(id, isSaved) => setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites')} />
                 </AiClickWrapper>
               ))}
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="recipe-list">
               {(displayRecipes || []).map(r => (
                 <AiClickWrapper key={r._id || r.id} recipeId={r._id || r.id} enabled={isAi}>
-                  <RecipeCard recipe={r} variant="list" onSave={() => setToast('Saved')} />
+                  <RecipeCard recipe={r} variant="list" onSave={(id, isSaved) => setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites')} />
                 </AiClickWrapper>
               ))}
             </div>

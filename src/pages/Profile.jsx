@@ -5,6 +5,7 @@ import { useState } from 'react';
 import RecipeCard from '../components/RecipeCard';
 import StarRating from '../components/StarRating';
 import IconTile from '../components/IconTile';
+import Toast from '../components/Toast';
 import { PageLoader } from '../components/Spinner';
 import ErrorBanner from '../components/ErrorBanner';
 import { useProfile, useActivity, useSavedRecipes } from '../hooks/useProfile';
@@ -16,9 +17,10 @@ export default function Profile() {
   const { user, logout } = useAuth();
   const [tab, setTab] = useState('Activity');
 
+  const [toast, setToast] = useState(null);
   const { data: profileData, loading: profileLoading, error: profileError } = useProfile();
   const { data: activityData, loading: activityLoading } = useActivity();
-  const { saved: savedRecipes, loading: savedLoading, toggleSave } = useSavedRecipes();
+  const { saved: savedRecipes, loading: savedLoading, refetch: refetchSaved } = useSavedRecipes();
 
   const displayName = user?.displayName || 'SnapCook User';
   const displayEmail = user?.email || '';
@@ -157,9 +159,15 @@ export default function Profile() {
               <p style={{ color: 'var(--color-text-3)', fontSize: 'var(--text-sm)' }}>No favourites yet. Save recipes to find them here.</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
+            <div className="recipe-grid">
               {savedRecipes.map(r => (
-                <RecipeCard key={r._id} recipe={r} saved onSave={() => toggleSave(r._id, true)} />
+                <RecipeCard
+                  key={r._id} recipe={r} variant="grid" saved
+                  onSave={(id, isSaved) => {
+                    setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites');
+                    if (!isSaved) refetchSaved();
+                  }}
+                />
               ))}
             </div>
           )
@@ -206,6 +214,8 @@ export default function Profile() {
           <LogOut size={16} /> Log Out
         </button>
       </div>
+
+      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { Search as SearchIcon, X, Mic, Clock, TrendingUp, ChevronRight, ArrowUpR
 import { useNavigate } from 'react-router-dom';
 import RecipeCard from '../components/RecipeCard';
 import IconTile from '../components/IconTile';
+import Toast from '../components/Toast';
 import { PageLoader } from '../components/Spinner';
 import { useRecipeSearch } from '../hooks/useRecipes';
 import { useCuisines } from '../hooks/useCuisine';
@@ -57,6 +58,7 @@ export default function Search() {
   const [category, setCategory] = useState('all');
   const [viewMode, setViewMode] = useState('grid');
   const [recentSearches, setRecentSearches] = useState(loadRecent);
+  const [toast, setToast] = useState(null);
 
   const { results, loading: searchLoading, search } = useRecipeSearch();
   const { data: cuisines } = useCuisines();
@@ -252,12 +254,12 @@ export default function Search() {
                 ))}
               </div>
               {viewMode === 'grid' ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
-                  {results.map((r, i) => <div key={r._id || i} className="animate-fadeUp" style={{ animationDelay: `${i * 0.04}s` }}><RecipeCard recipe={r} /></div>)}
+                <div className="recipe-grid">
+                  {results.map((r, i) => <div key={r._id || i} className="animate-fadeUp" style={{ animationDelay: `${i * 0.04}s` }}><RecipeCard recipe={r} variant="grid" onSave={(id, isSaved) => setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites')} /></div>)}
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {results.map((r, i) => <div key={r._id || i} className="animate-fadeUp" style={{ animationDelay: `${i * 0.04}s` }}><RecipeCard recipe={r} variant="list" /></div>)}
+                <div className="recipe-list">
+                  {results.map((r, i) => <div key={r._id || i} className="animate-fadeUp" style={{ animationDelay: `${i * 0.04}s` }}><RecipeCard recipe={r} variant="list" onSave={(id, isSaved) => setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites')} /></div>)}
                 </div>
               )}
             </>
@@ -279,6 +281,8 @@ export default function Search() {
           )}
         </div>
       )}
+
+      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
     </div>
   );
 }
