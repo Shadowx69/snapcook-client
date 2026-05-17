@@ -24,13 +24,14 @@ import ChangePassword from './pages/settings/ChangePassword';
 import Preferences from './pages/settings/Preferences';
 import PrivacyPolicy from './pages/settings/PrivacyPolicy';
 import Support from './pages/settings/Support';
+import IngredientEditor from './pages/IngredientEditor';
 
 // Paths that don't require authentication
 const PUBLIC_PATHS = ['/auth'];
 // Paths that hide the top nav bar
-const HIDE_TOP_NAV = ['/auth', '/onboarding', '/recipe/', '/cuisine/', '/search', '/settings/'];
+const HIDE_TOP_NAV = ['/auth', '/onboarding', '/recipe/', '/cuisine/', '/search', '/settings/', '/snap/ingredients'];
 // Paths that hide the bottom nav bar
-const HIDE_NAV = ['/auth', '/onboarding', '/recipe/', '/cuisine/', '/settings/'];
+const HIDE_NAV = ['/auth', '/onboarding', '/recipe/', '/cuisine/', '/settings/', '/snap/ingredients'];
 
 // ── Error Boundary (class component — React requirement) ──────────────────────
 class ErrorBoundary extends React.Component {
@@ -225,6 +226,7 @@ function App() {
                   <Route path="/settings/preferences" element={<Preferences />} />
                   <Route path="/settings/privacy" element={<PrivacyPolicy />} />
                   <Route path="/settings/support" element={<Support />} />
+                  <Route path="/snap/ingredients" element={<IngredientEditor />} />
                 </Routes>
               </Layout>
             </ErrorBoundary>

@@ -83,18 +83,20 @@ export default function Snap() {
     if (!canFind) return;
     setLoading(true);
     try {
-      let data;
       if (manualIngredients.length > 0) {
-        data = await snapApi.analyzeManual({ ingredients: manualIngredients });
+        // Manual path: unchanged — detect, match, store, navigate
+        const data = await snapApi.analyzeManual({ ingredients: manualIngredients });
+        const recipeIds = (data.recipes || []).map(r => r.id || r._id);
+        saveSnapSession(data.ingredients || manualIngredients, recipeIds);
+        localStorage.setItem('AI_RECOMMENDATIONS', JSON.stringify(data.recipes));
+        navigate('/recipes?ai=true');
       } else {
+        // Image path: detect ingredients only, let user review on next page
         const formData = new FormData();
         formData.append('image', imageFile);
-        data = await snapApi.analyze(formData);
+        const data = await snapApi.detect(formData);
+        navigate('/snap/ingredients', { state: { ingredients: data.ingredients || [] } });
       }
-      const recipeIds = (data.recipes || []).map(r => r.id || r._id);
-      saveSnapSession(data.ingredients || manualIngredients, recipeIds);
-      localStorage.setItem('AI_RECOMMENDATIONS', JSON.stringify(data.recipes));
-      navigate('/recipes?ai=true');
     } catch (err) {
       console.error(err);
       setToast(err.message || 'Failed to find recipes. Check your connection and try again.');
