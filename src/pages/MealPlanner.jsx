@@ -32,7 +32,7 @@ export default function MealPlanner() {
   const searchRef = useRef();
 
   const { plan, loading, error, saving, updateSlot, removeSlot, savePlan, refetch } = useMealPlanner();
-  const { data: allRecipes } = useRecipes({ sort: 'rating', limit: 100 });
+  const { data: allRecipes } = useRecipes({ sort: 'rating', limit: 400 });
 
   // Focus search input when picker opens
   useEffect(() => {
