@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Check, X, Salad, Beef, Leaf,
   UtensilsCrossed, AlertTriangle, Globe2,
-  WheatOff, ShieldCheck, Activity, Bone
+  WheatOff, Activity, Bone
 } from 'lucide-react';
 import Toast from '../../components/Toast';
 import IconTile from '../../components/IconTile';
@@ -15,7 +15,6 @@ const DIETS = [
   { id: 'vegan', label: 'Vegan', icon: Leaf },
   { id: 'keto', label: 'Keto', icon: Beef },
   { id: 'gluten-free', label: 'Gluten-Free', icon: WheatOff },
-  { id: 'halal', label: 'Halal', icon: ShieldCheck },
   { id: 'low-carb', label: 'Low Carb', icon: Activity },
   { id: 'paleo', label: 'Paleo', icon: Bone },
 ];

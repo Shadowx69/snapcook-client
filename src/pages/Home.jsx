@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Camera, Clock, Star, Flame, Zap, Globe2, ClipboardList,
-  UtensilsCrossed, Heart, Calendar, Sun, CloudSun, Moon,
+  UtensilsCrossed, Heart, Calendar, Sun, CloudSun, Moon, Search as SearchIcon,
 } from 'lucide-react';
 import RecipeCard from '../components/RecipeCard';
 import SectionHeader from '../components/SectionHeader';
@@ -140,6 +140,28 @@ export default function Home() {
           {displayName}!
         </h1>
         <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-2)', marginTop: 2 }}>What are you cooking today?</p>
+      </div>
+
+      {/* ── SEARCH BAR ── */}
+      <div className="animate-fadeUp" style={{ padding: '12px 16px 0' }}>
+        <div
+          role="button"
+          onClick={() => navigate('/search')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            background: 'var(--color-surface)',
+            border: '1.5px solid var(--color-border)',
+            borderRadius: 'var(--radius-xs)',
+            padding: '12px 14px',
+            cursor: 'pointer',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
+          <SearchIcon size={17} color="var(--color-text-3)" style={{ flexShrink: 0 }} />
+          <span style={{ color: 'var(--color-text-3)', fontSize: 'var(--text-sm)', flex: 1, userSelect: 'none' }}>
+            Search recipes, cuisines, ingredients…
+          </span>
+        </div>
       </div>
 
       {/* ── B. HERO SNAP BANNER ── */}

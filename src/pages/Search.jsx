@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Search as SearchIcon, X, Mic, Clock, TrendingUp, ChevronRight, ArrowUpRight, ArrowLeft, List, LayoutGrid, SearchX } from 'lucide-react';
+import { Search as SearchIcon, X, Clock, ChevronRight, ArrowUpRight, ArrowLeft, List, LayoutGrid, SearchX } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import RecipeCard from '../components/RecipeCard';
 import IconTile from '../components/IconTile';
@@ -132,16 +132,13 @@ export default function Search() {
               value={query}
               onChange={e => setQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && commitSearch(query)}
-              style={{ borderRadius: 'var(--radius-xs)', paddingRight: query ? 80 : 44 }}
+              style={{ borderRadius: 'var(--radius-xs)', paddingRight: query ? 44 : 16 }}
             />
             {query ? (
-              <button onClick={() => { setQuery(''); inputRef.current?.focus(); }} style={{ position: 'absolute', right: 42, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 4 }}>
+              <button onClick={() => { setQuery(''); inputRef.current?.focus(); }} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 4 }}>
                 <X size={16} />
               </button>
             ) : null}
-            <button style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 4 }} title="Voice search (coming soon)">
-              <Mic size={18} />
-            </button>
           </div>
         </div>
 
@@ -187,26 +184,8 @@ export default function Search() {
             </div>
           )}
 
-          <div className="animate-fadeUp delay-1" style={{ marginBottom: 28 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-              <TrendingUp size={14} color="var(--color-primary)" />
-              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Trending</span>
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {trendingTags.map(tag => (
-                <button key={tag.label} onClick={() => applyQuery(tag.query)}
-                  style={{ padding: '8px 14px', borderRadius: 'var(--radius-xs)', background: 'var(--color-surface)', border: '1px solid var(--color-border)', fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--color-primary)', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'background 0.15s, transform 0.15s' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-primary-light)'; e.currentTarget.style.transform = 'scale(1.04)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-surface)'; e.currentTarget.style.transform = ''; }}
-                >
-                  {tag.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {cuisines?.length > 0 && (
-            <div className="animate-fadeUp delay-2" style={{ marginBottom: 28 }}>
+            <div className="animate-fadeUp delay-1" style={{ marginBottom: 28 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Browse by Cuisine</span>
                 <button onClick={() => navigate('/explore')} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-primary)', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', gap: 2 }}>

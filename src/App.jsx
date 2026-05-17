@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Home as HomeIcon, Compass, Camera, Calendar, User, Search as SearchIcon, Loader } from 'lucide-react';
+import { Home as HomeIcon, Compass, Camera, Calendar, User, Loader } from 'lucide-react';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import BrandMark from './components/BrandMark';
@@ -89,37 +89,13 @@ function ScrollToTop() {
 function TopNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   if (HIDE_TOP_NAV.some(p => location.pathname.startsWith(p))) return null;
-
-  const avatarInitial = user?.displayName
-    ? user.displayName.charAt(0).toUpperCase()
-    : user?.email
-      ? user.email.charAt(0).toUpperCase()
-      : '?';
 
   return (
     <nav className="top-nav">
       <div className="top-nav-brand" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
         <BrandMark size={26} /> SnapCook
-      </div>
-      <div className="top-nav-actions">
-        <button className="notif-btn" aria-label="Search" onClick={() => navigate('/search')}>
-          <SearchIcon size={18} />
-        </button>
-        <button
-          className="avatar-btn"
-          onClick={() => navigate('/profile')}
-          aria-label="Profile"
-          style={{ background: user?.avatarImg ? 'transparent' : (user?.avatarColor || 'var(--color-primary)') }}
-        >
-          {user?.avatarImg ? (
-            <img src={user.avatarImg} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-          ) : (
-            avatarInitial
-          )}
-        </button>
       </div>
     </nav>
   );

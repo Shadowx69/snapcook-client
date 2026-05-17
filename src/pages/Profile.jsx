@@ -1,4 +1,4 @@
-import { LogOut, Settings, Flame, UtensilsCrossed, Heart, BookOpen } from 'lucide-react';
+import { Settings, Flame, UtensilsCrossed, Heart, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
@@ -14,7 +14,7 @@ const TABS = ['Activity', 'Favourites', 'History'];
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [tab, setTab] = useState('Activity');
 
   const [toast, setToast] = useState(null);
@@ -26,15 +26,6 @@ export default function Profile() {
   const displayEmail = user?.email || '';
   const avatarInitial = displayName.charAt(0).toUpperCase();
   const stats = profileData?.stats;
-
-  async function handleLogout() {
-    try {
-      await logout();
-      navigate('/auth', { replace: true });
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
-  }
 
   if (profileLoading) return <PageLoader />;
 
@@ -205,14 +196,6 @@ export default function Profile() {
             </div>
           );
         })()}
-      </div>
-
-      {/* ── LOGOUT ── */}
-      <div style={{ padding: '8px 16px 0' }}>
-        <div style={{ height: 1, background: 'var(--color-border)', marginBottom: 16 }} />
-        <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 'var(--text-sm)', color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', padding: '8px 0' }}>
-          <LogOut size={16} /> Log Out
-        </button>
       </div>
 
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
