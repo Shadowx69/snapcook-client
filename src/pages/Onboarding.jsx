@@ -63,7 +63,7 @@ export default function Onboarding() {
       background: slide.bg,
       display: 'flex', flexDirection: 'column',
       transition: 'background 0.5s ease',
-      overflow: 'hidden',
+      overflowY: 'auto',
     }}>
       {/* Abstract geometric decoration */}
       <OnboardingDecor />
@@ -83,23 +83,22 @@ export default function Onboarding() {
         Skip
       </button>
 
-      {/* Content */}
+      {/* Content — natural height so it doesn't fight with bottom bar */}
       <div style={{
-        flex: 1, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        padding: '10vh 24px 2vh',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center',
+        padding: '64px 24px 16px',
         animation: 'fadeUp 0.5s ease',
-        key: current,
       }}>
-        {/* Hero icon — bare SVG, no background */}
-        <slide.icon size={96} color="#fff" strokeWidth={1.5} style={{ marginBottom: '4vh', flexShrink: 0 }} />
+        {/* Hero icon */}
+        <slide.icon size={72} color="#fff" strokeWidth={1.5} style={{ marginBottom: 14, flexShrink: 0 }} />
 
         <h1 style={{
           fontFamily: 'var(--font-display)',
           fontSize: 'var(--text-3xl)',
           fontWeight: 700, color: '#fff',
           textAlign: 'center', lineHeight: 1.2,
-          marginBottom: '2vh',
+          marginBottom: 8,
         }}>
           {slide.title}
         </h1>
@@ -107,7 +106,7 @@ export default function Onboarding() {
           color: 'rgba(255,255,255,0.82)',
           fontSize: 'var(--text-md)',
           textAlign: 'center', lineHeight: 1.6,
-          maxWidth: 320, marginBottom: '4vh',
+          maxWidth: 320, marginBottom: 16,
         }}>
           {slide.subtitle}
         </p>
@@ -124,7 +123,7 @@ export default function Onboarding() {
                   key={opt.id}
                   onClick={() => setDiet(opt.id)}
                   style={{
-                    padding: '12px 8px',
+                    padding: '10px 8px',
                     borderRadius: 'var(--radius-sm)',
                     border: `2px solid ${diet === opt.id ? '#fff' : 'rgba(255,255,255,0.3)'}`,
                     background: diet === opt.id ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)',
@@ -136,7 +135,7 @@ export default function Onboarding() {
                     backdropFilter: 'blur(8px)',
                   }}
                 >
-                  <opt.icon size={24} /> 
+                  <opt.icon size={22} />
                   {opt.label}
                 </button>
               ))}
@@ -145,10 +144,14 @@ export default function Onboarding() {
         )}
       </div>
 
-      {/* Bottom controls */}
+      {/* Spacer: pushes bottom bar down on tall screens; collapses on small ones */}
+      <div style={{ flex: 1, minHeight: 12 }} />
+
+      {/* Bottom controls — always reachable at end of scroll */}
       <div style={{
-        padding: '2vh 24px 6vh',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3vh',
+        flexShrink: 0,
+        padding: '12px 24px 28px',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
       }}>
         {/* Progress dots */}
         <div style={{ display: 'flex', gap: 8 }}>
