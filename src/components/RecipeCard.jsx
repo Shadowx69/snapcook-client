@@ -232,7 +232,7 @@ export default function RecipeCard({ recipe, variant = 'portrait', onSave, saved
       </div>
 
       {/* Card body */}
-      <div style={{ padding: '9px 10px 11px', flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <div style={{ padding: '9px 10px 11px', height: 90, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 5, overflow: 'hidden' }}>
         <p className="line-clamp-2" style={{
           fontFamily: 'var(--font-display)',
           fontSize: 'var(--text-sm)', fontWeight: 700,
