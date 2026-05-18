@@ -270,6 +270,12 @@ export default function RecipeDetail() {
   useEffect(() => { if (recipe?.servings) setServings(recipe.servings); }, [recipe]);
 
   useEffect(() => {
+    if (recipe?._id) {
+      usersApi.logOpened(recipe._id).catch(() => {});
+    }
+  }, [recipe?._id]);
+
+  useEffect(() => {
     if (tab === 'Reviews' && recipe?._id) {
       setReviewsLoading(true);
       recipesApi.getReviews(recipe._id)

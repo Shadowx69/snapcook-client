@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import RecipeCard from '../components/RecipeCard';
 import IconTile from '../components/IconTile';
 import Toast from '../components/Toast';
-import { PageLoader } from '../components/Spinner';
+import Spinner from '../components/Spinner';
 import { useRecipeSearch } from '../hooks/useRecipes';
 import { useCuisines } from '../hooks/useCuisine';
 import { getCuisineIcon } from '../icons/cuisineIcon';
@@ -142,7 +142,7 @@ export default function Search() {
           </div>
         </div>
 
-        {isSearching && hasResults && (
+        {isSearching && (hasResults || searchLoading) && (
           <div className="scroll-row" style={{ padding: '0 16px 10px', gap: 6 }}>
             {categoryChips.map(c => (
               <button key={c.id} onClick={() => setCategory(c.id)} className={`pill-toggle${category === c.id ? ' active' : ''}`} style={{ fontSize: 'var(--text-xs)' }}>
@@ -213,13 +213,13 @@ export default function Search() {
       {/* ── SEARCH RESULTS ── */}
       {isSearching && (
         <div style={{ padding: '16px 16px 0' }}>
-          {searchLoading ? (
-            <PageLoader />
-          ) : hasResults ? (
+          {hasResults ? (
             <>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-2)', fontWeight: 500 }}>
-                  {results.length} result{results.length !== 1 ? 's' : ''}
+                <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-2)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  {searchLoading
+                    ? <><Spinner size={14} /> Searching…</>
+                    : <>{results.length} result{results.length !== 1 ? 's' : ''}</>}
                 </span>
                 <button onClick={() => setViewMode(v => v === 'grid' ? 'list' : 'grid')} style={{ padding: '6px 10px', borderRadius: 'var(--radius-xs)', background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-text-2)', cursor: 'pointer', fontFamily: 'var(--font-body)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   {viewMode === 'grid' ? <><List size={13} /> List</> : <><LayoutGrid size={13} /> Grid</>}
@@ -232,16 +232,22 @@ export default function Search() {
                   </button>
                 ))}
               </div>
-              {viewMode === 'grid' ? (
-                <div className="recipe-grid">
-                  {results.map((r, i) => <div key={r._id || i} className="animate-fadeUp" style={{ animationDelay: `${i * 0.04}s` }}><RecipeCard recipe={r} variant="grid" onSave={(id, isSaved) => setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites')} /></div>)}
-                </div>
-              ) : (
-                <div className="recipe-list">
-                  {results.map((r, i) => <div key={r._id || i} className="animate-fadeUp" style={{ animationDelay: `${i * 0.04}s` }}><RecipeCard recipe={r} variant="list" onSave={(id, isSaved) => setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites')} /></div>)}
-                </div>
-              )}
+              <div style={{ opacity: searchLoading ? 0.55 : 1, transition: 'opacity 0.2s' }}>
+                {viewMode === 'grid' ? (
+                  <div className="recipe-grid">
+                    {results.map((r, i) => <div key={r._id || i} className="animate-fadeUp" style={{ animationDelay: `${i * 0.04}s` }}><RecipeCard recipe={r} variant="grid" onSave={(id, isSaved) => setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites')} /></div>)}
+                  </div>
+                ) : (
+                  <div className="recipe-list">
+                    {results.map((r, i) => <div key={r._id || i} className="animate-fadeUp" style={{ animationDelay: `${i * 0.04}s` }}><RecipeCard recipe={r} variant="list" onSave={(id, isSaved) => setToast(isSaved ? 'Added to Favourites' : 'Removed from Favourites')} /></div>)}
+                  </div>
+                )}
+              </div>
             </>
+          ) : searchLoading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '56px 0' }}>
+              <Spinner size={28} />
+            </div>
           ) : (
             <div className="empty-state animate-fadeUp">
               <div className="empty-state-icon"><IconTile icon={SearchX} size={72} iconSize={36} tint="neutral" strokeWidth={1.75} /></div>

@@ -125,7 +125,11 @@ export default function Profile() {
             <div>
               {activityData.map((item, i) => (
                 <div key={item._id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 0', borderBottom: i < activityData.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                  <IconTile icon={item.action === 'Cooked' ? UtensilsCrossed : Heart} tint={item.action === 'Cooked' ? 'primary' : 'accent'} size={40} iconSize={18} />
+                  <IconTile
+                    icon={item.action === 'Cooked' ? UtensilsCrossed : item.action === 'Opened' ? BookOpen : Heart}
+                    tint={item.action === 'Cooked' ? 'primary' : item.action === 'Opened' ? 'neutral' : 'accent'}
+                    size={40} iconSize={18}
+                  />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 2 }}>
                       {item.action} <span style={{ color: 'var(--color-primary)' }}>{item.recipe}</span>
